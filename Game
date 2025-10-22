@@ -1,0 +1,108 @@
+import random
+import time
+
+# --- Kelas untuk merepresentasikan Markas dan Unit ---
+
+class Markas:
+    def __init__(self, nama):
+        self.nama = nama
+        self.hp = 100  # Health Point markas
+        self.unit = [] # Daftar unit yang dimiliki
+        self.sumber_daya = 10  # Sumber daya awal
+
+    def __str__(self):
+        return f"Markas {self.nama}: HP={self.hp}, Unit={len(self.unit)}, Sumber Daya={self.sumber_daya}"
+
+class Unit:
+    def __init__(self, nama, serangan, pertahanan, biaya):
+        self.nama = nama
+        self.serangan = serangan
+        self.pertahanan = pertahanan
+        self.biaya = biaya
+
+    def __str__(self):
+        return f"{self.nama} (Serang:{self.serangan}, Def:{self.pertahanan})"
+
+# --- Inisialisasi Unit ---
+
+INFANTERI = Unit("Infanteri", serangan=5, pertahanan=3, biaya=3)
+TANK = Unit("Tank", serangan=15, pertahanan=10, biaya=10)
+PESAWAT = Unit("Pesawat", serangan=20, pertahanan=5, biaya=12)
+
+# --- Fungsi-fungsi Game ---
+
+def cetak_status(pemain, komputer):
+    """Mencetak status game saat ini."""
+    print("="*30)
+    print(pemain)
+    print(komputer)
+    print("="*30)
+
+def fase_sumber_daya(markas):
+    """Menambah sumber daya ke markas setiap giliran."""
+    markas.sumber_daya += 5
+    print(f"[{markas.nama}] Mendapat 5 sumber daya baru. Total: {markas.sumber_daya}")
+
+def fase_pengerahan(markas):
+    """Memungkinkan pemain membangun unit baru."""
+    print(f"[{markas.nama}] Sumber daya Anda: {markas.sumber_daya}")
+    print("Unit yang bisa dibangun:")
+    print(f"1. {INFANTERI.nama} (Biaya: {INFANTERI.biaya})")
+    print(f"2. {TANK.nama} (Biaya: {TANK.biaya})")
+    print(f"3. {PESAWAT.nama} (Biaya: {PESAWAT.biaya})")
+    
+    pilihan_unit = input("Pilih unit untuk dibangun (1/2/3) atau 'skip': ").lower()
+    
+    unit_dibangun = None
+    if pilihan_unit == '1' and markas.sumber_daya >= INFANTERI.biaya:
+        unit_dibangun = INFANTERI
+    elif pilihan_unit == '2' and markas.sumber_daya >= TANK.biaya:
+        unit_dibangun = TANK
+    elif pilihan_unit == '3' and markas.sumber_daya >= PESAWAT.biaya:
+        unit_dibangun = PESAWAT
+    elif pilihan_unit != 'skip':
+        print("Pilihan tidak valid atau sumber daya tidak cukup.")
+    
+    if unit_dibangun:
+        markas.unit.append(unit_dibangun)
+        markas.sumber_daya -= unit_dibangun.biaya
+        print(f"Berhasil membangun {unit_dibangun.nama}!")
+
+def fase_serangan(penyerang, korban):
+    """Simulasi pertarungan antara dua markas."""
+    print(f"\n--- PERTEMPURAN: {penyerang.nama} menyerang {korban.nama} ---")
+    time.sleep(1)
+    
+    total_serangan_penyerang = sum(unit.serangan for unit in penyerang.unit)
+    total_pertahanan_korban = sum(unit.pertahanan for unit in korban.unit)
+    
+    dadu_penyerang = random.randint(1, 6)
+    dadu_korban = random.randint(1, 6)
+    
+    kekuatan_penyerang = total_serangan_penyerang + dadu_penyerang
+    kekuatan_korban = total_pertahanan_korban + dadu_korban
+
+    print(f"{penyerang.nama} menyerang dengan kekuatan {kekuatan_penyerang} (total serang: {total_serangan_penyerang} + dadu:{dadu_penyerang})")
+    print(f"{korban.nama} bertahan dengan kekuatan {kekuatan_korban} (total def: {total_pertahanan_korban} + dadu:{dadu_korban})")
+
+    if kekuatan_penyerang > kekuatan_korban:
+        kerusakan = kekuatan_penyerang - kekuatan_korban
+        korban.hp -= kerusakan
+        print(f"Serangan berhasil! {korban.nama} menerima {kerusakan} kerusakan. HP tersisa: {korban.hp}")
+        
+        if korban.unit:
+            # Hancurkan unit musuh secara acak
+            unit_hancur = random.choice(korban.unit)
+            korban.unit.remove(unit_hancur)
+            print(f"Unit {unit_hancur.nama} milik {korban.nama} hancur!")
+            
+    else:
+        print("Serangan gagal! Pertahanan musuh terlalu kuat.")
+
+def ai_pengerahan(komputer):
+    """AI sederhana untuk komputer."""
+    if komputer.sumber_daya >= TANK.biaya and random.random() < 0.6:
+        komputer.unit.append(TANK)
+        komputer.sumber_daya -= TANK.biaya
+        print(f"[Markas Komputer] Membangun {TANK.nama}!")
+    elif komputer.sumbe
